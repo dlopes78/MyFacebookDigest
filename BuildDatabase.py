@@ -19,12 +19,12 @@ from training import Classifier
 # Hide deprecation warnings. The facebook module isn't that up-to-date (facebook.GraphAPIError).
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
-token = "your token"
+token = "yourtoken" 
 graph = facebook.GraphAPI(token)
 
 verbose_printout=0
 
-db = MySQLdb.connect("","root","yourpwd")
+db = MySQLdb.connect("","root","yourpasswd")
 cursor = db.cursor()
 cursor.execute("CREATE DATABASE facebook_extended;")
 
@@ -156,11 +156,10 @@ def get_status(userid):
         current_page += 1
       else: current_page=6
     except: 
-      current_page=6
-#      if "paging" in status: 
-#        url = status['paging']['next']
-#        current_page += 1
-#      else: current_page=6
+      if "paging" in status: 
+        url = status['paging']['next']
+        current_page += 1
+      else: current_page=6
 
   return listStatus 
 
@@ -325,8 +324,8 @@ def main():
 ## SQL section
 
   cursor.execute("CREATE TABLE IF NOT EXISTS Friends(Name VARCHAR(50), user_id BIGINT PRIMARY KEY, picture_url VARCHAR(500))")
-##  for elem in friends_NameIdPicture:
-##    cursor.execute("INSERT INTO Friends(Name, user_id, picture_url) VALUES (%s, %s, %s);", (elem[0], elem[1], elem[2]) ) 
+  for elem in friends_NameIdPicture:
+    cursor.execute("INSERT INTO Friends(Name, user_id, picture_url) VALUES (%s, %s, %s);", (elem[0], elem[1], elem[2]) ) 
 #  cursor.execute("INSERT INTO Friends(Name, user_id) VALUES (%s, %s);", (friend_NameId[110][0], friend_NameId[110][1]) ) 
 
   cursor.execute("CREATE TABLE IF NOT EXISTS Newsfeed(news_id VARCHAR(500) PRIMARY KEY, user_id BIGINT, feed VARCHAR(500), time VARCHAR(100), NofComments INT, ClassifierP FLOAT, ClassifierR FLOAT, ClassifierS FLOAT, FOREIGN KEY (user_id) REFERENCES Friends(user_id))")
@@ -344,26 +343,16 @@ def main():
   cursor.execute("CREATE TABLE IF NOT EXISTS Comments(news_id VARCHAR(500) NOT NULL DEFAULT 0, status_id VARCHAR(500) NOT NULL DEFAULT 0, photos_id VARCHAR(500) NOT NULL DEFAULT 0, link_id VARCHAR(500) NOT NULL DEFAULT 0, user_id BIGINT, text VARCHAR(2500), sender VARCHAR(50), sender_id BIGINT, time VARCHAR(100), FOREIGN KEY (news_id) REFERENCES Newsfeed(news_id), FOREIGN KEY (status_id) REFERENCES StatusUpdate(status_id), FOREIGN KEY (photos_id) REFERENCES Photos(photos_id), FOREIGN KEY (link_id) REFERENCES Links(link_id), FOREIGN KEY (user_id) REFERENCES Newsfeed(user_id))")
   cursor.execute("SET foreign_key_checks = 0")
 
-#  user_Fbid=["628401352","1549970621","1236828","1272032175","100000452109060"]
-#  for user in user_Fbid:
 
-  for elem in friends_NameIdPicture[130:]:
+  for elem in friends_NameIdPicture[:40]:
 
     user=elem[1]   
     print "running for user ",user 
  
-#  get_feeds("1549970621") 
-#  get_status("1549970621")
-#  print get_feeds("1549970621") 
     Feed_dict= get_feeds(user)
-#  print Feed_dict 
     Status_dict= get_status(user)
-#  print get_status("1549970621")
-#  print get_tagged("1549970621")
     Photos_dict=get_photos(user)
-#  for elem in Photos_dict: print elem
     Links_dict=get_links(user)
-#  for elem in dictLinks: print elem
 
   
     for elem in Feed_dict: 
@@ -432,8 +421,6 @@ def main():
 
 
     db.commit()
-#  cursor.execute("SELECT * FROM Friends")
-#  print cursor.fetchall()
 
  
 if __name__ == '__main__':
