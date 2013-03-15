@@ -127,8 +127,21 @@ def subscriptionConfirm():
     listWeights=[] 
     cursor.execute("SELECT user_id,COUNT(*) FROM Comments GROUP BY user_id;")
     aggregate1=cursor.fetchall()
-    cursor.execute("SELECT Comments.user_id,COUNT(*) FROM Comments,Friends WHERE Friends.user_id = Comments.sender_id GROUP BY Comments.user_id;") 
+    cursor.execute("SELECT Comments.user_id,COUNT(*) FROM Comments,Friends WHERE Friends.user_id = Comments.sender_id AND Comments.sender_id!=Comments.user_id GROUP BY Comments.user_id;") 
     aggregate2=cursor.fetchall()
+    cursor.execute("SELECT Comments.user_id,COUNT(*),MAX(EXTRACT(YEAR_MONTH FROM time)),EXTRACT(YEAR_MONTH FROM NOW()) FROM Comments,Friends WHERE Friends.user_id = Comments.sender_id AND Comments.sender_id=501326469 GROUP BY Comments.user_id;") 
+    aggregate2_mycomments=cursor.fetchall()
+#reweight more closer interaction in time
+    for elem in aggregate2_mycomments:
+      if abs(elem[2]-elem[3])<25: elem[1]=10*elem[1] 
+      elif abs(elem[2]-elem[3])<75:  elem[1]=8*elem[1]
+      elif abs(elem[2]-elem[3])<125:  elem[1]=5*elem[1]
+      elif abs(elem[2]-elem[3])<175:  elem[1]=2*elem[1]
+# reweight more for my comments
+    for elem in aggregate2:
+      for elem_my in aggregate2_mycomments:
+        if elem[0]==elem_my[0]: elem[1]=elem[1]+9*elem_my[1]
+# build ratio
     for denom in aggregate1:
       for numer in aggregate2:
         if numer[0]==denom[0]: 
